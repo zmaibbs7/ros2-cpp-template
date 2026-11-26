@@ -1,0 +1,25 @@
+#include "my_project/version.hpp"
+
+namespace my_project {
+
+int version_major() noexcept {
+  return @PROJECT_VERSION_MAJOR@;
+}
+
+int version_minor() noexcept {
+  return @PROJECT_VERSION_MINOR@;
+}
+
+int version_patch() noexcept {
+  return @PROJECT_VERSION_PATCH@;
+}
+
+std::string_view version_string() noexcept {
+  return "@PROJECT_VERSION@";
+}
+
+std::string_view git_commit_hash() noexcept {
+  return "@MY_PROJECT_GIT_COMMIT_HASH@";
+}
+
+}  // namespace my_project

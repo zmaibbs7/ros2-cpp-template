@@ -1,0 +1,18 @@
+---
+Checks: >
+  -*,
+  bugprone-*,
+  clang-analyzer-*,
+  concurrency-*,
+  modernize-*,
+  performance-*,
+  -bugprone-easily-swappable-parameters,
+  -modernize-use-trailing-return-type,
+  -modernize-concat-nested-namespaces
+WarningsAsErrors: '*'
+HeaderFilterRegex: '^(include|src)/'
+FormatStyle: file
+CheckOptions:
+  - key: modernize-use-nullptr.NullMacros
+    value: 'NULL'
+...

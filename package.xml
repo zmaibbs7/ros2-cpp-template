@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>my_project</name>
+  <version>0.1.0</version>
+  <description>Modern C++ pure-CMake middleware template library compatible with ROS 2 colcon workspaces.</description>
+  <maintainer email="robotics@example.com">Robotics Middleware Team</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>cmake</buildtool_depend>
+
+  <export>
+    <build_type>cmake</build_type>
+  </export>
+</package>

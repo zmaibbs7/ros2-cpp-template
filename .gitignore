@@ -1,0 +1,22 @@
+# Build outputs & ROS 2 colcon artifacts
+build/
+install/
+log/
+compile_commands.json
+
+# CMake & C++ compiler artifacts
+CMakeUserPresets.json
+*.o
+*.a
+*.so
+*.dylib
+
+# IDE & Editor caches
+.cache/
+.idea/
+.vscode/ipch/
+cmake-build-*/
+*.swp
+*.swo
+*~
+.DS_Store

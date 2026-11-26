@@ -1,0 +1,68 @@
+# 纯本地离线 Git 提交前强门禁配置（100% repo: local，零外网访问）
+default_install_hook_types: [pre-commit, commit-msg]
+default_stages: [pre-commit]
+
+repos:
+  - repo: local
+    hooks:
+      - id: clang-format
+        name: clang-format (C++ style check)
+        entry: bash -c 'command -v clang-format >/dev/null 2>&1 || { echo "[ERROR] clang-format not found"; exit 1; }; clang-format -i "$@"' --
+        language: system
+        types_or: [c++, c]
+        files: ^(include|src|apps|tests|benchmarks|examples)/.*\.(h|hpp|c|cc|cpp)$
+
+      - id: clang-tidy
+        name: clang-tidy (incremental static analysis)
+        entry: >
+          bash -euo pipefail -c '
+            command -v clang-tidy >/dev/null 2>&1 || { echo "[ERROR] clang-tidy not found"; exit 1; }
+            if [ ! -f compile_commands.json ]; then
+              echo "[pre-commit] compile_commands.json missing; configuring build/debug..."
+              mkdir -p build && touch build/COLCON_IGNORE
+              cmake -S . -B build/debug -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON >/dev/null
+              ln -sfn build/debug/compile_commands.json compile_commands.json
+            fi
+            cpp_files=()
+            hpp_files=()
+            for f in "$@"; do
+              case "$f" in
+                *.h|*.hpp) hpp_files+=("$f") ;;
+                *.c|*.cc|*.cpp) cpp_files+=("$f") ;;
+              esac
+            done
+            if [ ${#cpp_files[@]} -gt 0 ]; then
+              clang-tidy -p build/debug --header-filter="^(include|src)/" "${cpp_files[@]}"
+            fi
+            if [ ${#hpp_files[@]} -gt 0 ]; then
+              # 针对纯头文件改动，扫描 src/ 下对应翻译单元以获得完整编译上下文
+              mapfile -t all_srcs < <(find src -name "*.cpp" | sort)
+              if [ ${#all_srcs[@]} -gt 0 ]; then
+                clang-tidy -p build/debug --header-filter="^(include|src)/" "${all_srcs[@]}"
+              fi
+            fi
+          ' --
+        language: system
+        files: ^(include|src|apps|tests|benchmarks|examples)/.*\.(h|hpp|c|cc|cpp)$
+
+      - id: doxygen-check-docs
+        name: doxygen (public API comment gate)
+        entry: >
+          bash -euo pipefail -c '
+            command -v doxygen >/dev/null 2>&1 || { echo "[ERROR] doxygen not found"; exit 1; }
+            if [ ! -f build/debug/docs/Doxyfile.check ]; then
+              mkdir -p build && touch build/COLCON_IGNORE
+              cmake -S . -B build/debug -DCMAKE_BUILD_TYPE=Debug >/dev/null
+            fi
+            cmake --build build/debug --target check-docs
+          '
+        language: system
+        pass_filenames: false
+        files: ^include/.*\.(h|hpp)$
+
+      - id: gitlint
+        name: gitlint (commit message format)
+        entry: bash -c 'command -v gitlint >/dev/null 2>&1 || { echo "[ERROR] gitlint not found"; exit 1; }; gitlint --msg-filename "$1"' --
+        language: system
+        stages: [commit-msg]
+        always_run: true
